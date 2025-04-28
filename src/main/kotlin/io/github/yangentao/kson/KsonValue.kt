@@ -111,7 +111,7 @@ class KsonString(val data: String) : KsonValue() {
     }
 }
 
-class YsonBool(val data: Boolean) : KsonValue() {
+class KsonBool(val data: Boolean) : KsonValue() {
     override fun kson(buf: StringBuilder) {
         if (data) {
             buf.append("true")
@@ -121,7 +121,7 @@ class YsonBool(val data: Boolean) : KsonValue() {
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other is YsonBool) {
+        if (other is KsonBool) {
             return other.data == data
         }
         return false
@@ -136,12 +136,12 @@ class YsonBool(val data: Boolean) : KsonValue() {
     }
 
     companion object {
-        val True: YsonBool = YsonBool(true)
-        val False: YsonBool = YsonBool(false)
+        val True: KsonBool = KsonBool(true)
+        val False: KsonBool = KsonBool(false)
     }
 }
 
-class YsonBlob(val data: ByteArray) : KsonValue() {
+class KsonBlob(val data: ByteArray) : KsonValue() {
 
     constructor(v: java.sql.Blob) : this(v.getBytes(1, v.length().toInt()))
 
@@ -154,7 +154,7 @@ class YsonBlob(val data: ByteArray) : KsonValue() {
     val encoded: String get() = encode(data)
 
     override fun equals(other: Any?): Boolean {
-        if (other is YsonBlob) {
+        if (other is KsonBlob) {
             return other.data.contentEquals(data)
         }
         return false

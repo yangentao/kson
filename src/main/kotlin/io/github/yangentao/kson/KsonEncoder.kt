@@ -18,7 +18,7 @@ object KsonEncoder {
         if (m == null) return KsonNull.inst
         if (m is KsonValue) return m
         when (m) {
-            is Boolean -> return YsonBool(m)
+            is Boolean -> return KsonBool(m)
             is Number -> return KsonNum(m)
             is Char -> return KsonString(m.toString())
             is String -> return KsonString(m)
@@ -29,9 +29,9 @@ object KsonEncoder {
             is java.sql.Timestamp -> return KsonString(formatDateTime(m.time))
             is java.util.Date -> return KsonNum(m.time)
             is Calendar -> return KsonNum(m.timeInMillis)
-            is Blob -> return YsonBlob(m)
-            is ByteArray -> return YsonBlob(m)
-            is BooleanArray -> return KsonArray(m.size).apply { m.mapTo(this.data) { YsonBool(it) } }
+            is Blob -> return KsonBlob(m)
+            is ByteArray -> return KsonBlob(m)
+            is BooleanArray -> return KsonArray(m.size).apply { m.mapTo(this.data) { KsonBool(it) } }
             is ShortArray -> return KsonArray(m.size).apply { m.mapTo(this.data) { KsonNum(it) } }
             is IntArray -> return KsonArray(m.size).apply { m.mapTo(this.data) { KsonNum(it) } }
             is LongArray -> return KsonArray(m.size).apply { m.mapTo(this.data) { KsonNum(it) } }

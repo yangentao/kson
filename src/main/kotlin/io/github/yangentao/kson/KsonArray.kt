@@ -33,7 +33,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
     }
 
     fun toBoolArray(): BooleanArray {
-        return this.map { (it as YsonBool).data }.toBooleanArray()
+        return this.map { (it as KsonBool).data }.toBooleanArray()
     }
 
     fun toByteArray(): ByteArray {
@@ -122,7 +122,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
         if (value == null) {
             data.add(KsonNull.inst)
         } else {
-            data.add(YsonBool(value))
+            data.add(KsonBool(value))
         }
     }
 
@@ -158,7 +158,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
         if (value == null) {
             data.add(KsonNull.inst)
         } else {
-            data.add(YsonBlob(value))
+            data.add(KsonBlob(value))
         }
     }
 

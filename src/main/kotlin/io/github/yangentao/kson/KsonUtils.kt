@@ -4,6 +4,16 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.*
 
+
+internal  fun KProperty<*>.getPropValue(inst: Any? = null): Any? {
+    if (this.getter.parameters.isEmpty()) {
+        return this.getter.call()
+    }
+    val v = this.getter.call(inst)
+    if (v != null) return v
+    return null
+}
+
 internal val KProperty<*>.isPublic: Boolean get() = this.visibility == KVisibility.PUBLIC
 internal val KType.genericArgs: List<KTypeProjection> get() = this.arguments.filter { it.variance == KVariance.INVARIANT }
 internal val KType.isGeneric: Boolean get() = this.arguments.isNotEmpty()

@@ -6,6 +6,7 @@ import io.github.yangentao.anno.userName
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty0
 
 class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32)) : KsonValue(), Map<String, KsonValue> by data {
     var caseLess = false
@@ -71,7 +72,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
         return when (val v = get(key)) {
             null -> null
             is KsonString -> v.data
-            is YsonBool -> v.data.toString()
+            is KsonBool -> v.data.toString()
             is KsonNum -> v.data.toString()
             is KsonNull -> null
             is KsonObject -> v.toString()
@@ -132,7 +133,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
         if (value == null) {
             data[key] = KsonNull.inst
         } else {
-            data[key] = YsonBool(value)
+            data[key] = KsonBool(value)
         }
     }
 
@@ -140,7 +141,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
         val v = get(key) ?: return null
         return when (v) {
             is KsonNull -> null
-            is YsonBool -> v.data
+            is KsonBool -> v.data
             is KsonNum -> v.data != 0
             is KsonString -> v.data == "true" || v.data == "yes" || v.data == "1"
             else -> null
@@ -212,26 +213,26 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
         }
     }
 
-//    inline operator fun <reified V> getValue(thisRef: Any?, property: KProperty<*>): V {
-//        val retType = property.returnType
-//        val v = if (caseLess) {
-//            this[property.userName] ?: this[property.userName.lowercase()]
-//        } else {
-//            this[property.userName]
-//        } ?: YsonNull.inst
-//
-//        if (v !is YsonNull) {
-//            val pv = YsonDecoder.decodeByType(v, retType, null)
-//            if (pv != null || retType.isMarkedNullable) {
-//                return pv as V
-//            }
-//        }
-//        return property.decodeValue(null) as V
-//    }
-//
-//    operator fun KProperty0<*>.unaryPlus() {
-//        putAny(this.userName, this.getPropValue())
-//    }
+    inline operator fun <reified V> getValue(thisRef: Any?, property: KProperty<*>): V {
+        val retType = property.returnType
+        val v = if (caseLess) {
+            this[property.userName] ?: this[property.userName.lowercase()]
+        } else {
+            this[property.userName]
+        } ?: KsonNull.inst
+
+        if (v !is KsonNull) {
+            val pv = KsonDecoder.decodeByType(v, retType, null)
+            if (pv != null || retType.isMarkedNullable) {
+                return pv as V
+            }
+        }
+        return null as V
+    }
+
+    operator fun KProperty0<*>.unaryPlus() {
+        putAny(this.userName, this.getPropValue())
+    }
 
     companion object {
         fun fromMap(map: Map<String, Any?>): KsonObject {

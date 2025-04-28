@@ -79,7 +79,7 @@ object KsonDecoder {
 
         when (cls) {
             Boolean::class -> return when (value) {
-                is YsonBool -> value.data
+                is KsonBool -> value.data
                 is KsonNum -> value.data != 0
                 is KsonString -> value.data == "true" || value.data == "yes"
                 else -> error("type error: $cls  value: $value")
@@ -87,56 +87,56 @@ object KsonDecoder {
 
             Byte::class -> return when (value) {
                 is KsonNum -> value.data.toByte()
-                is YsonBool -> if (value.data) 1.toByte() else 0.toByte()
+                is KsonBool -> if (value.data) 1.toByte() else 0.toByte()
                 is KsonString -> value.data.toByteOrNull()
                 else -> error("type error: $cls  value: $value")
             }
 
             Short::class -> return when (value) {
                 is KsonNum -> value.data.toShort()
-                is YsonBool -> if (value.data) 1.toShort() else 0.toShort()
+                is KsonBool -> if (value.data) 1.toShort() else 0.toShort()
                 is KsonString -> value.data.toShortOrNull()
                 else -> error("type error: $cls  value: $value")
             }
 
             Int::class -> return when (value) {
                 is KsonNum -> value.data.toInt()
-                is YsonBool -> if (value.data) 1.toInt() else 0.toInt()
+                is KsonBool -> if (value.data) 1.toInt() else 0.toInt()
                 is KsonString -> value.data.toIntOrNull()
                 else -> error("type error: $cls  value: $value")
             }
 
             Long::class -> return when (value) {
                 is KsonNum -> value.data.toLong()
-                is YsonBool -> if (value.data) 1.toLong() else 0.toLong()
+                is KsonBool -> if (value.data) 1.toLong() else 0.toLong()
                 is KsonString -> value.data.toLongOrNull()
                 else -> error("type error: $cls  value: $value")
             }
 
             Float::class -> return when (value) {
                 is KsonNum -> value.data.toFloat()
-                is YsonBool -> if (value.data) 1.toFloat() else 0.toFloat()
+                is KsonBool -> if (value.data) 1.toFloat() else 0.toFloat()
                 is KsonString -> value.data.toFloatOrNull()
                 else -> error("type error: $cls  value: $value")
             }
 
             Double::class -> return when (value) {
                 is KsonNum -> value.data.toDouble()
-                is YsonBool -> if (value.data) 1.toDouble() else 0.toDouble()
+                is KsonBool -> if (value.data) 1.toDouble() else 0.toDouble()
                 is KsonString -> value.data.toDoubleOrNull()
                 else -> error("type error: $cls  value: $value")
             }
 
             BigInteger::class -> return when (value) {
                 is KsonNum -> BigInteger(value.data.toString())
-                is YsonBool -> if (value.data) BigInteger("1") else BigInteger("0")
+                is KsonBool -> if (value.data) BigInteger("1") else BigInteger("0")
                 is KsonString -> value.data.toBigIntegerOrNull()
                 else -> error("type error: $cls  value: $value")
             }
 
             BigDecimal::class -> return when (value) {
                 is KsonNum -> BigDecimal(value.data.toString())
-                is YsonBool -> if (value.data) BigDecimal("1") else BigDecimal("0")
+                is KsonBool -> if (value.data) BigDecimal("1") else BigDecimal("0")
                 is KsonString -> value.data.toBigDecimalOrNull()
                 else -> error("type error: $cls  value: $value")
             }
@@ -174,8 +174,8 @@ object KsonDecoder {
             }
 
             ByteArray::class -> return when (value) {
-                is KsonString -> YsonBlob.decode(value.data)
-                is YsonBlob -> value.data
+                is KsonString -> KsonBlob.decode(value.data)
+                is KsonBlob -> value.data
                 is KsonArray -> value.toByteArray()
                 else -> error("type error: $cls  value: $value")
             }
@@ -222,7 +222,7 @@ object KsonDecoder {
             }
 
             Array<Boolean>::class -> return when (value) {
-                is KsonArray -> value.data.map { (it as YsonBool).data }.toTypedArray()
+                is KsonArray -> value.data.map { (it as KsonBool).data }.toTypedArray()
                 else -> error("type error: $cls  value: $value")
             }
 
@@ -338,11 +338,11 @@ object KsonDecoder {
 
     private fun strValue(value: KsonValue): String {
         if (value is KsonString) return value.data
-        if (value is YsonBool) return value.data.toString()
+        if (value is KsonBool) return value.data.toString()
         if (value is KsonNum) return value.data.toString()
         if (value is KsonObject) return value.data.toString()
         if (value is KsonArray) return value.data.toString()
-        if (value is YsonBlob) return value.encoded
+        if (value is KsonBlob) return value.encoded
         error("type error:   value: $value")
     }
 }

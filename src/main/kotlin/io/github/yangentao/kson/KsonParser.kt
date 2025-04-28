@@ -194,16 +194,16 @@ class KsonParser(val text: String) {
         return KsonNum(n)
     }
 
-    fun parseTrue(): YsonBool {
+    fun parseTrue(): KsonBool {
         skipWhite()
         tokens("true")
-        return YsonBool.True
+        return KsonBool.True
     }
 
-    fun parseFalse(): YsonBool {
+    fun parseFalse(): KsonBool {
         skipWhite()
         tokens("false")
-        return YsonBool.False
+        return KsonBool.False
     }
 
     fun parseNull(): KsonNull {
