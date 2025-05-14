@@ -23,6 +23,10 @@ class TextScanner(val text: String) {
         if (position > 0) position -= 1
     }
 
+    fun skipWhites(): List<Char> {
+        return skipChars(CharCode.SpTabCrLf)
+    }
+
     fun skipSpaceTabCrLf(): List<Char> {
         return skipChars(CharCode.SpTabCrLf)
     }

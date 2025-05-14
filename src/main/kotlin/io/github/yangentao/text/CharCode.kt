@@ -1,6 +1,13 @@
 package io.github.yangentao.text
 
 object CharCode {
+
+    fun isUnicodeLead(code:Char): Boolean{
+        return code >= Character.MIN_HIGH_SURROGATE && code <= Character.MAX_HIGH_SURROGATE
+    }
+    fun isUnicodeTrail(code:Char): Boolean{
+        return code >= Character.MIN_LOW_SURROGATE && code <= Character.MAX_LOW_SURROGATE
+    }
     fun isNum(code: Char): Boolean {
         return code >= NUM0 && code <= NUM9;
     }
