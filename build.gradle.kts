@@ -25,6 +25,7 @@ val githubLib = artifactName
 
 
 repositories {
+    mavenLocal()
     mavenCentral()
 //    maven("https://app800.cn/maven/repository/public/")
 }
@@ -33,7 +34,7 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib"))
-    implementation("io.github.yangentao:anno:[1.0.1,)")
+    implementation("io.github.yangentao:anno:[1.1.0,)")
 }
 
 tasks.test {
