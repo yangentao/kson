@@ -16,7 +16,7 @@ class JsonTest {
         }
     """.trimIndent()
         val v = JsonParser(text).parse() as KsonObject
-        println(v.getString("name"))
+        assertEquals("ent#ao", v.getString("name"))
         println(v)
     }
 

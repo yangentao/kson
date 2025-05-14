@@ -14,7 +14,7 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
-version = "1.0.2"
+version = "1.1.0"
 val artifactName = "kson"
 val descLib = "Json implements for kotlin"
 

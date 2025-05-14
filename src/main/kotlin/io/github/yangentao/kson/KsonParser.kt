@@ -150,7 +150,6 @@ open class JsonParser(json: String) {
     protected fun parseString(): String {
         ts.expectChar(CharCode.QUOTE)
         val charList = ts.moveNext(terminator = { it == CharCode.QUOTE && ts.lastBuf.lastOrNull() != CharCode.BSLASH })
-        println("parse string: $charList")
         val s = codesToString(charList)
         ts.expectChar(CharCode.QUOTE)
         return s
@@ -166,11 +165,6 @@ private fun isNum(ch: Char): Boolean {
     return ch == CharCode.DOT || ch == CharCode.MINUS || ch == CharCode.PLUS || ch == CharCode.e || ch == CharCode.E
 }
 
-fun main() {
-    val s = "ent\u0023ao"
-    val ss = codesToString(s.toCharArray().toList())
-    println(ss)
-}
 
 private fun codesToString(charList: List<Char>): String {
     val buf = ArrayList<Char>()
@@ -202,11 +196,11 @@ private fun codesToString(charList: List<Char>): String {
                     if (i < charList.size && charList[i] == CharCode.PLUS) {
                         i += 1;
                     }
-                    while (i < charList.size && CharCode.isHex(charList[i])) {
+                    while (i < charList.size && uls.size < 4 && CharCode.isHex(charList[i])) {
                         uls.add(charList[i]);
                         i += 1;
                     }
-                    if (uls.isEmpty()) error("Convert to string failed: ${String(charList.toCharArray())}.");
+                    if (uls.size != 4) error("Convert to string failed: ${String(charList.toCharArray())}.");
                     val s = String(uls.toCharArray())
                     val n = s.toInt(16)
                     val charArr = Character.toChars(n)
