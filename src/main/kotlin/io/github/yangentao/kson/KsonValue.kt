@@ -90,9 +90,8 @@ class KsonString(val data: String) : KsonValue() {
     constructor(v: StringBuilder) : this(v.toString())
 
     override fun kson(buf: StringBuilder) {
-        buf.append("\"")
-        buf.append(escapeJson(data))
-        buf.append("\"")
+        val s = escapeJson(data)
+        buf.append(s.quoted)
     }
 
     override fun equals(other: Any?): Boolean {

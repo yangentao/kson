@@ -1,310 +1,319 @@
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+@file:JvmName("KsonParserKt")
 
 package io.github.yangentao.kson
 
-private const val CR: Char = '\r'
-private const val LF: Char = '\n'
-private const val SP: Char = ' '
-private const val TAB: Char = '\t'
-private const val DOT: Char = '.'
-private const val QT: Char = '\"'
-private const val SQT: Char = '\''
-private val WHITE: Set<Char> = hashSetOf(CR, LF, SP, TAB)
-private val NUM_START: Set<Char> = hashSetOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-')
-private val NUMS: Set<Char> = hashSetOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', DOT, 'e', 'E', '+', '-')
-private val ESCAP: Set<Char> = hashSetOf(SQT, '\\', '/', 'b', 'f', 'n', 'r', 't', 'u')
+import io.github.yangentao.text.CharCode
 
-private val Char.isWhite: Boolean get() = this in WHITE
+class LooeseJsonParser(json: String) : JsonParser(json) {
 
-class KsonError(msg: String = "YsonError") : Exception("Json解析错误, $msg") {
+    override fun parseObject(): KsonObject {
+        ts.skipWhites()
+        val map = KsonObject()
+        ts.expectChar(CharCode.LCUB)
+        while (ts.nowChar != CharCode.RCUB) {
+            ts.skipWhites()
+            val key = if (ts.nowChar == CharCode.QUOTE) parseString() else parseIdent()
+            ts.skipWhites()
+            ts.expectAnyChar(ASSIGN)
+            val v = parseValue()
+            map.putAny(key, v)
+            val trails = ts.skipChars(TRAIL)
+            if (ts.nowChar != CharCode.RCUB) {
+                if (trails.intersect(SEP).isEmpty()) raise()
+            }
+        }
+        ts.expectChar(CharCode.RCUB)
+        return map
+    }
 
-    constructor(msg: String, text: String, pos: Int) : this(
-        msg + ", " + if (pos < text.length) text.substring(pos, Math.min(pos + 20, text.length)) else text
-    )
+    override fun parseArray(): KsonArray {
+        ts.skipWhites()
+        val list = KsonArray()
+        ts.expectChar(CharCode.LSQB)
+        ts.skipWhites()
+        while (ts.nowChar != CharCode.RSQB) {
+            ts.skipWhites()
+            val v = parseValue()
+            list.add(v)
+            val trails = ts.skipChars(TRAIL)
+            if (ts.nowChar != CharCode.RSQB) {
+                if (trails.intersect(SEP).isEmpty()) raise()
+            }
+        }
+        ts.expectChar(CharCode.RSQB)
+        return list
+    }
+
+    companion object {
+        private val ASSIGN: Set<Char> = setOf(CharCode.COLON, CharCode.EQUAL)
+        private val SEP: Set<Char> = setOf(CharCode.COMMA, CharCode.SEMI, CharCode.CR, CharCode.LF)
+        private val TRAIL: Set<Char> = setOf(CharCode.SP, CharCode.HTAB, CharCode.CR, CharCode.LF, CharCode.COMMA, CharCode.SEMI)
+    }
 }
 
-class KsonParser(val text: String) {
-    private val data: CharArray = text.toCharArray()
-    private var current: Int = 0
+open class JsonParser(json: String) {
+    protected val ts = TextScanner(json)
 
-    private val end: Boolean get() = current >= data.size
-    private val currentChar: Char get() = data[current]
-
-    val leftString: String
-        get() {
-            if (current >= data.size) {
-                return ""
-            }
-            val sb = StringBuilder()
-            var n = 0
-            while (n < 20) {
-                if (current + n >= data.size) {
-                    break
-                }
-                sb.append(data[current + n])
-                ++n
-            }
-            return sb.toString()
-        }
-
-    fun parse(endParse: Boolean): KsonValue {
-        skipWhite()
-        if (end) {
-            throw KsonError("空的字符串")
-        }
-        val ch = currentChar
-        val v = when (ch) {
-            '{' -> parseObject()
-            '[' -> parseArray()
-            QT -> parseString()
-            't' -> parseTrue()
-            'f' -> parseFalse()
-            'n' -> parseNull()
-            in NUM_START -> parseNumber()
-            else -> throw KsonError("")
-        }
-        skipWhite()
-        if (endParse) {
-            if (!this.end) {
-                throw IllegalArgumentException("应该结束解析:$leftString")
-            }
-        }
+    fun parse(): KsonValue {
+        val v = parseValue()
+        ts.skipWhites()
+        if (!ts.isEnd) raise()
         return v
     }
 
-    fun parseArray(): KsonArray {
-        skipWhite()
-        tokenc('[')
-        val ya = KsonArray()
-        while (!end) {
-            skipWhite()
-            if (currentChar == ']') {
-                break
+    protected fun parseValue(): KsonValue {
+        if (ts.isEnd) return KsonNull.inst
+        ts.skipWhites()
+        val ch = ts.nowChar
+        return when (ch) {
+            CharCode.LCUB -> parseObject()
+            CharCode.LSQB -> parseArray()
+            CharCode.QUOTE -> KsonString(parseString())
+            CharCode.MINUS -> KsonNum(parseNum())
+            in CharCode.NUM0..CharCode.NUM9 -> KsonNum(parseNum())
+            CharCode.n -> {
+                ts.expectString("null")
+                KsonNull.inst
             }
-            if (currentChar == ',') {
-                next()
-                continue
+
+            CharCode.t -> {
+                ts.expectString("true")
+                KsonBool(true)
             }
-            val yv = parse(false)
-            ya.data.add(yv)
+
+            CharCode.f -> {
+                ts.expectString("false")
+                KsonBool(false)
+            }
+
+            else -> raise()
+
         }
-        tokenc(']')
-        return ya
     }
 
-    fun parseObject(): KsonObject {
-        skipWhite()
-        tokenc('{')
-        val yo = KsonObject()
-        while (!end) {
-            skipWhite()
-            if (currentChar == '}') {
-                break
-            }
-            if (currentChar == ',') {
-                next()
-                continue
-            }
+    protected open fun parseObject(): KsonObject {
+        ts.skipWhites()
+        val map = KsonObject()
+        ts.expectChar(CharCode.LCUB)
+        ts.skipWhites()
+        while (ts.nowChar != CharCode.RCUB) {
+            ts.skipWhites()
             val key = parseString()
-            tokenc(':')
-            val yv = parse(false)
-            yo.data[key.data] = yv
-        }
-        tokenc('}')
-        return yo
-    }
-
-    fun parseString(): KsonString {
-        skipWhite()
-        tokenc(QT)//字符串以双引号开始
-        val buf = StringBuilder(64)
-        var escing = false
-        while (!end) {
-            val ch = currentChar
-            if (!escing) {
-                if (ch == QT) {//字符串结束,双引号
-                    break
-                }
-                next()
-                if (ch == '\\') {//开始转义
-                    escing = true
-                    continue
-                }
-                buf.append(ch)//正常字符
-            } else {
-                escing = false
-                next()
-                when (ch) {
-                    QT, SQT, '\\', '/' -> buf.append(ch)
-                    'b' -> buf.append('\b')
-                    'f' -> buf.append(12.toChar())
-                    'n' -> buf.append(LF)
-                    'r' -> buf.append(CR)
-                    't' -> buf.append(TAB)
-                    'u', 'U' -> {
-                        if (current + 4 < text.length) {
-                            val sb = StringBuilder(4)
-                            sb.append(text[current + 0])
-                            sb.append(text[current + 1])
-                            sb.append(text[current + 2])
-                            sb.append(text[current + 3])
-                            current += 4
-                            val n = sb.toString().toInt(16)
-                            buf.appendCodePoint(n)
-                            //TODO UTF16 解码 https://cloud.tencent.com/developer/article/1625557
-                        } else {
-                            throw KsonError("期望是unicode字符")
-                        }
-                    }
-
-                    else -> {
-                        buf.append(ch)
-                    }
-
-                }
+            ts.skipWhites()
+            ts.expectChar(CharCode.COLON)
+            val v = parseValue()
+            map.putAny(key, v)
+            ts.skipWhites()
+            if (ts.nowChar != CharCode.RCUB) {
+                ts.expectChar(CharCode.COMMA)
+                ts.skipWhites()
             }
         }
-        if (escing) {
-            throw KsonError("解析错误,转义,")
-        }
-        tokenc(QT)
-        return KsonString(buf.toString())
+        ts.expectChar(CharCode.RCUB)
+        return map
     }
 
-    fun parseNumber(): KsonValue {
-        skipWhite()
-        val buf = StringBuilder(32)
-        while (!end) {
-            val c = currentChar
-            if (c !in NUMS) {
-                break
-            }
-            buf.append(c)
-            next()
-        }
-        val s = buf.toString()
-        if (s.isEmpty()) {
-            throw KsonError("非数字")
-        }
-        if ('.' in s) {
-            val d = s.toDouble()
-            return KsonNum(d)
-        }
-        val n = s.toLong()
-        return KsonNum(n)
-    }
-
-    fun parseTrue(): KsonBool {
-        skipWhite()
-        tokens("true")
-        return KsonBool.True
-    }
-
-    fun parseFalse(): KsonBool {
-        skipWhite()
-        tokens("false")
-        return KsonBool.False
-    }
-
-    fun parseNull(): KsonNull {
-        skipWhite()
-        tokens("null")
-        return KsonNull.inst
-    }
-
-    private fun next() {
-        current += 1
-    }
-
-    private fun skipWhite() {
-        while (!end) {
-            if (currentChar.isWhite) {
-                next()
-            } else {
-                return
+    protected open fun parseArray(): KsonArray {
+        ts.skipWhites()
+        val list = KsonArray()
+        ts.expectChar(CharCode.LSQB)
+        ts.skipWhites()
+        while (ts.nowChar != CharCode.RSQB) {
+            ts.skipWhites()
+            val v = parseValue()
+            list.add(v)
+            ts.skipWhites()
+            if (ts.nowChar != CharCode.RSQB) {
+                ts.expectChar(CharCode.COMMA)
+                ts.skipWhites()
             }
         }
+        ts.expectChar(CharCode.RSQB)
+        return list
     }
 
-    private fun isChar(c: Char): Boolean {
-        return currentChar == c
-    }
-
-    private fun tokenc(c: Char) {
-        skipWhite()
-        if (currentChar != c) {
-            throw KsonError("期望是字符$c", text, current)
+    protected fun parseNum(): Number {
+        val buf = ts.moveNext(acceptor = { isNum(it) })
+        if (buf.isEmpty()) raise("Except number")
+        val s = String(buf.toCharArray())
+        if (CharCode.DOT in buf) {
+            return s.toDouble()
         }
-        next()
-        skipWhite()
+        return s.toLong()
     }
 
-    private fun tokens(s: String) {
-        skipWhite()
-        for (c in s) {
-            if (currentChar != c) {
-                throw KsonError("期望是字符串$s", text, current)
-            }
-            next()
-        }
-        skipWhite()
+    protected fun parseIdent(): String {
+        val charList = ts.expectIdent()
+        return String(charList.toCharArray())
     }
 
-}
-
-private val esCharSet: Set<Char> = setOf('\\', '\"', '/', '\b', '\n', '\r', '\t', 12.toChar())
-private val unicodeReg: Regex = Regex("u[0-9a-fA-F]{4}]")
-private val _fch: Char = 12.toChar()
-fun escapeJson(s: String): String {
-    var n = 0
-    for (c in s) {
-        if (c in esCharSet) {
-            n += 1
-        }
-    }
-
-    if (n == 0 && !s.matches(unicodeReg)) {
+    protected fun parseString(): String {
+        ts.expectChar(CharCode.QUOTE)
+        val charList = ts.moveNext(terminator = { it == CharCode.QUOTE && ts.lastBuf.lastOrNull() != CharCode.BSLASH })
+        println("parse string: $charList")
+        val s = codesToString(charList)
+        ts.expectChar(CharCode.QUOTE)
         return s
     }
-    val sb = StringBuilder(s.length + n)
-    for (i in s.indices) {
-        val c = s[i]
-        when (c) {
-            '\\' -> if (i + 5 < s.length
-                && (s[i + 1] == 'u' || s[i + 1] == 'U')
-                && s[i + 2].isHex
-                && s[i + 3].isHex
-                && s[i + 4].isHex
-                && s[i + 5].isHex
-            ) {
-                sb.append("""\""")
-            } else {
-                sb.append("""\\""")
-            }
 
-            '\"' -> sb.append("""\"""")
-            '/' -> sb.append("""\/""")
-            '\b' -> sb.append("""\b""")
-            '\n' -> sb.append("""\n""")
-            '\r' -> sb.append("""\r""")
-            '\t' -> sb.append("""\t""")
-            _fch -> sb.append("""\f""")
-            else -> {
-                sb.append(c)
-            }
-        }
+    protected fun raise(msg: String = "Json parse error"): Nothing {
+        error("$msg. ${ts.position}, ${ts.leftText}")
     }
-    return sb.toString()
 }
 
-private val Char.isHex: Boolean get() = (this in '0'..'9') || (this in 'a'..'f') || (this in 'A'..'F')
+private fun isNum(ch: Char): Boolean {
+    if (ch >= CharCode.NUM0 && ch <= CharCode.NUM9) return true
+    return ch == CharCode.DOT || ch == CharCode.MINUS || ch == CharCode.PLUS || ch == CharCode.e || ch == CharCode.E
+}
 
 fun main() {
-    val a = """
-        1"
-        2'
-        \u12A0\uEF09\uEF0Z
-    """.trimIndent()
-    println(escapeJson(a))
+    val s = "ent\u0023ao"
+    val ss = codesToString(s.toCharArray().toList())
+    println(ss)
 }
 
+private fun codesToString(charList: List<Char>): String {
+    val buf = ArrayList<Char>()
+    var escaping = false
+    var i = 0
+    while (i < charList.size) {
+        val ch = charList[i]
+        if (!escaping) {
+            if (ch == CharCode.BSLASH) {
+                escaping = true;
+            } else {
+                buf.add(ch);
+            }
+        } else {
+            escaping = false;
+            when (ch) {
+                CharCode.SQUOTE, CharCode.BSLASH, CharCode.SLASH -> {
+                    buf.add(ch);
+                }
+
+                CharCode.b -> buf.add(CharCode.BS)
+                CharCode.f -> buf.add(CharCode.FF)
+                CharCode.n -> buf.add(CharCode.LF)
+                CharCode.r -> buf.add(CharCode.CR)
+                CharCode.t -> buf.add(CharCode.HTAB)
+                CharCode.u, CharCode.U -> {
+                    val uls = ArrayList<Char>()
+                    i += 1;
+                    if (i < charList.size && charList[i] == CharCode.PLUS) {
+                        i += 1;
+                    }
+                    while (i < charList.size && CharCode.isHex(charList[i])) {
+                        uls.add(charList[i]);
+                        i += 1;
+                    }
+                    if (uls.isEmpty()) error("Convert to string failed: ${String(charList.toCharArray())}.");
+                    val s = String(uls.toCharArray())
+                    val n = s.toInt(16)
+                    val charArr = Character.toChars(n)
+                    for (c in charArr) buf.add(c)
+                    i -= 1;
+                }
+
+                else -> buf.add(ch)
+            }
+        }
+        i += 1;
+    }
+    return String(buf.toCharArray());
+}
+
+internal fun encodeJsonString(s: String): String {
+    val chars: CharArray = s.toCharArray()
+    val buf: ArrayList<Char> = ArrayList()
+    var i: Int = 0
+    while (i < chars.size) {
+        val ch = chars[i]
+        if (ch < CharCode.SP) {
+            when (ch) {
+                CharCode.BS -> {
+                    buf.add(CharCode.BSLASH)
+                    buf.add(CharCode.b)
+                }
+
+                CharCode.FF -> {
+                    buf.add(CharCode.BSLASH)
+                    buf.add(CharCode.f)
+                }
+
+                CharCode.LF -> {
+                    buf.add(CharCode.BSLASH)
+                    buf.add(CharCode.n)
+                }
+
+                CharCode.CR -> {
+                    buf.add(CharCode.BSLASH)
+                    buf.add(CharCode.r)
+                }
+
+                CharCode.HTAB -> {
+                    buf.add(CharCode.BSLASH)
+                    buf.add(CharCode.t)
+                }
+
+                else -> {
+                    val x: Int = ch.code
+                    buf.add(CharCode.BSLASH)
+                    buf.add(CharCode.u)
+                    buf.add(CharCode.NUM0)
+                    buf.add(CharCode.NUM0)
+                    buf.add(lastHex(x shr 4))
+                    buf.add(lastHex(x))
+                }
+            }
+        } else if (CharCode.isUnicodeLead(ch) && (i + 1 < chars.size) && CharCode.isUnicodeTrail(chars[i + 1])) {
+            val x: Int = ch.code
+            buf.add(CharCode.BSLASH)
+            buf.add(CharCode.u)
+            buf.add(CharCode.d)
+            buf.add(lastHex(x shr 8))
+            buf.add(lastHex(x shr 4))
+            buf.add(lastHex(x))
+
+            val y = chars[i + 1].code
+            buf.add(CharCode.BSLASH)
+            buf.add(CharCode.u)
+            buf.add(CharCode.d)
+            buf.add(lastHex(y shr 8))
+            buf.add(lastHex(y shr 4))
+            buf.add(lastHex(y))
+            i += 1
+        } else {
+            when (ch) {
+                CharCode.SQUOTE -> {
+                    buf.add(CharCode.BSLASH);
+                    buf.add(CharCode.SQUOTE);
+                }
+
+                CharCode.BSLASH -> {
+                    buf.add(CharCode.BSLASH);
+                    buf.add(CharCode.BSLASH);
+                }
+
+                CharCode.SLASH -> {
+                    buf.add(CharCode.BSLASH);
+                    buf.add(CharCode.SLASH);
+                }
+
+                else -> {
+                    buf.add(ch)
+                }
+            }
+
+        }
+        i += 1
+    }
+    return String(buf.toCharArray())
+}
+
+// '0' + x  or  'a' + x - 10
+private fun hex4(n: Int): Char = Char(if (n < 10) 48 + n else 87 + n)
+private fun lastHex(n: Int): Char = hex4(n and 0x0F)
+
+private fun isUTF16(a: Char, b: Char): Boolean {
+    return CharCode.isUnicodeLead(a) && CharCode.isUnicodeTrail(b)
+}

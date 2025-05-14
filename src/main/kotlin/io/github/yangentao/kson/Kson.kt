@@ -2,6 +2,7 @@
 
 package io.github.yangentao.kson
 
+import io.github.yangentao.xlog.loge
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
@@ -9,14 +10,18 @@ import kotlin.reflect.KType
  * Kson , encode and decode
  */
 object Kson {
-    fun parse(text: String): KsonValue? {
+    fun parse(text: String, loose: Boolean = false): KsonValue? {
         try {
-            val p = KsonParser(text)
-            return p.parse(true)
+            return if (loose) {
+                LooeseJsonParser(text).parse()
+            } else {
+                JsonParser(text).parse()
+            }
         } catch (ex: Exception) {
+            loge("Parse Json error: ", ex.localizedMessage)
+            loge(ex)
             return null
         }
-
     }
 
     fun toKson(v: Any?): KsonValue {
@@ -53,3 +58,16 @@ abstract class KsonTypeTake<T> {
 
     val type: KType by lazy { this::class.supertypes.first().arguments.first().type!! }
 }
+
+class KsonError(msg: String = "KsonError") : Exception("Json解析错误, $msg") {
+
+    constructor(msg: String, text: String, pos: Int) : this(
+        msg + ", " + if (pos < text.length) text.substring(pos, Math.min(pos + 20, text.length)) else text
+    )
+}
+
+fun escapeJson(s: String): String {
+    return encodeJsonString(s)
+}
+
+internal val String.quoted get() = "\"$this\""

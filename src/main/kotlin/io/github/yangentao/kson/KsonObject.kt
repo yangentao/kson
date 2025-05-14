@@ -13,9 +13,8 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
     constructor(capcity: Int) : this(LinkedHashMap<String, KsonValue>(capcity))
 
-    constructor(json: String) : this() {
-        val p = KsonParser(json)
-        val v = p.parse(true)
+    constructor(json: String, loose: Boolean = false) : this() {
+        val v = Kson.parse(json, loose)
         if (v is KsonObject) {
             data.putAll(v.data)
         }
@@ -29,7 +28,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
                 buf.append(",")
             }
             first = false
-            buf.append("\"").append(escapeJson(k)).append("\":")
+            buf.append(escapeJson(k).quoted).append(":")
             v.kson(buf)
         }
         buf.append("}")

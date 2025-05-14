@@ -35,6 +35,7 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib"))
     implementation("io.github.yangentao:anno:[1.1.0,)")
+    implementation("io.github.yangentao:xlog:[1.0.5,)")
 }
 
 tasks.test {

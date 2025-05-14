@@ -6,8 +6,8 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
 
     constructor(capcity: Int) : this(ArrayList<KsonValue>(capcity))
 
-    constructor(json: String) : this() {
-        val v = KsonParser(json).parse(true)
+    constructor(json: String, loose: Boolean = false) : this() {
+        val v = Kson.parse(json, loose)
         if (v is KsonArray) {
             data.addAll(v.data)
         }
