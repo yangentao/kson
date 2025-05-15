@@ -1,6 +1,6 @@
 package entao
 
-import io.github.yangentao.kson.TextScanner
+import io.github.yangentao.text.TextScanner
 import io.github.yangentao.text.CharCode
 import kotlin.test.Test
 import kotlin.test.assertEquals

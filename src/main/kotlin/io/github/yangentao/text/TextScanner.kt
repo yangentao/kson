@@ -1,6 +1,7 @@
-package io.github.yangentao.kson
+@file:Suppress("unused")
 
-import io.github.yangentao.text.CharCode
+package io.github.yangentao.text
+
 import kotlin.math.max
 import kotlin.math.min
 

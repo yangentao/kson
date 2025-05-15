@@ -3,6 +3,7 @@
 package io.github.yangentao.kson
 
 import io.github.yangentao.text.CharCode
+import io.github.yangentao.text.TextScanner
 
 class LooeseJsonParser(json: String) : JsonParser(json) {
 

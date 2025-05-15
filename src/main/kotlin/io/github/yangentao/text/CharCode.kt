@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.yangentao.text
 
 object CharCode {
