@@ -1,7 +1,7 @@
 package entao
 
-import io.github.yangentao.text.TextScanner
-import io.github.yangentao.text.CharCode
+import io.github.yangentao.charcode.CharCode
+import io.github.yangentao.charcode.TextScanner
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

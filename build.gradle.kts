@@ -14,7 +14,7 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
-version = "1.1.0"
+version = "1.1.1"
 val artifactName = "kson"
 val descLib = "Json implements for kotlin"
 
@@ -36,6 +36,7 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("io.github.yangentao:anno:[1.1.0,)")
     implementation("io.github.yangentao:xlog:[1.0.5,)")
+    implementation("io.github.yangentao:charcode:[1.0.0,)")
 }
 
 tasks.test {
