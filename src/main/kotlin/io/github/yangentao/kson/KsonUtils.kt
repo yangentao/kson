@@ -1,11 +1,36 @@
 package io.github.yangentao.kson
 
+import io.github.yangentao.anno.Exclude
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.*
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.hasAnnotation
 
+private val KProperty1<*, *>.acceptJson: Boolean get() = this.isPublic && this is KMutableProperty1 && !this.isAbstract && !this.isConst && !this.hasAnnotation<Exclude>()
 
-internal  fun KProperty<*>.getPropValue(inst: Any? = null): Any? {
+internal val KClass<*>.propertiesJSON: List<KMutableProperty1<*, *>>
+    get() {
+        val map = this.java.declaredFields.withIndex().associate { it.value.name to it.index }
+        val ls = this.declaredMemberProperties.sortedBy { map[it.name] ?: map[it.name + "$" + "delegate"] }
+        return ls.filter { it.acceptJson }.map { (it as KMutableProperty1) }
+    }
+
+internal fun <K, V, K2, V2> Map<K, V>.remap(keyBlock: (K) -> K2, valueBlock: (V) -> V2): LinkedHashMap<K2, V2> {
+    val m = LinkedHashMap<K2, V2>(this.size + this.size / 2)
+    for (e in this) {
+        m[keyBlock(e.key)] = valueBlock(e.value)
+    }
+    return m
+}
+
+internal fun <K, V, K2, V2> Map<K, V>.remapTo(newMap: MutableMap<K2, V2>, keyBlock: (K) -> K2, valueBlock: (V) -> V2) {
+    for (e in this) {
+        newMap[keyBlock(e.key)] = valueBlock(e.value)
+    }
+}
+
+internal fun KProperty<*>.getPropValue(inst: Any? = null): Any? {
     if (this.getter.parameters.isEmpty()) {
         return this.getter.call()
     }

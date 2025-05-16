@@ -7,8 +7,9 @@ import java.net.URI
 import java.net.URL
 import java.sql.Blob
 import java.util.*
+import kotlin.reflect.KProperty1
 
-class KsonEncoderConfig {
+class KsonEncoderConfig(val includeProperties: List<KProperty1<*, *>> = emptyList()) {
 
 }
 
@@ -49,7 +50,15 @@ object KsonEncoder {
                     }
                     return ka
                 } else {
-                    val ls = m::class.propertiesJSON
+                    val ls: List<KProperty1<*, *>> = if (config == null) {
+                        m::class.propertiesJSON
+                    } else {
+                        if (config.includeProperties.isEmpty()) {
+                            m::class.propertiesJSON
+                        } else {
+                            m::class.propertiesJSON + config.includeProperties
+                        }
+                    }
                     val yo = KsonObject(ls.size)
                     ls.forEach { p ->
                         val k = p.userName
@@ -63,16 +72,3 @@ object KsonEncoder {
     }
 }
 
-internal fun <K, V, K2, V2> Map<K, V>.remap(keyBlock: (K) -> K2, valueBlock: (V) -> V2): LinkedHashMap<K2, V2> {
-    val m = LinkedHashMap<K2, V2>(this.size + this.size / 2)
-    for (e in this) {
-        m[keyBlock(e.key)] = valueBlock(e.value)
-    }
-    return m
-}
-
-internal fun <K, V, K2, V2> Map<K, V>.remapTo(newMap: MutableMap<K2, V2>, keyBlock: (K) -> K2, valueBlock: (V) -> V2) {
-    for (e in this) {
-        newMap[keyBlock(e.key)] = valueBlock(e.value)
-    }
-}

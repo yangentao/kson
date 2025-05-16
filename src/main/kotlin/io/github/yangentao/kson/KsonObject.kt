@@ -245,7 +245,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
 }
 
-inline fun <reified T : Any> KClass<T>.createYsonModel(argValue: KsonObject): T {
+inline fun <reified T : Any> KClass<T>.createKsonModel(argValue: KsonObject): T {
     val c = this.constructors.first { it.parameters.size == 1 && it.parameters.first().type.classifier == KsonObject::class }
     return c.call(argValue)
 }

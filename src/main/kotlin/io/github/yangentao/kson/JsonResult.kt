@@ -1,7 +1,6 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "FunctionName")
 
 package io.github.yangentao.kson
-
 
 class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
 
@@ -34,6 +33,16 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
         get() = jo.getAny(DATA)
         set(value) = jo.putAny(DATA, value)
 
+    var table: JsonTable
+        get() {
+            val ob = jo.getObject(TABLE)
+            if (ob != null) return JsonTable(ob)
+            val tab = JsonTable()
+            jo.putAny(TABLE, tab.tableObject)
+            return tab
+        }
+        set(value) = jo.putAny(TABLE, value.tableObject)
+
     fun result(code: Int, msg: String?, data: Any?): JsonResult {
         this.code = code
         this.message = msg
@@ -48,6 +57,7 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
     fun failed(msg: String? = MSG_FAILED, data: Any? = null, code: Int = -1): JsonResult {
         return result(code = code, msg = msg ?: MSG_FAILED, data = data)
     }
+
     fun withAttrs(vararg attrs: Pair<String, Any?>): JsonResult {
 
         for (p in attrs) {
@@ -55,6 +65,7 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
         }
         return this
     }
+
     fun putAll(vararg ps: Pair<String, Any?>): JsonResult {
         for (p in ps) {
             jo.putAny(p.first, p.second)
@@ -69,6 +80,16 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
 
     fun data(value: Any): JsonResult {
         this.data = value
+        return this
+    }
+
+    fun table(tab: JsonTable): JsonResult {
+        this.table = tab
+        return this
+    }
+
+    fun tableRows(rows: Collection<KsonObject>): JsonResult {
+        this.table.addRows(rows)
         return this
     }
 
@@ -106,9 +127,18 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
         const val MSG_OK = "操作成功"
         const val MSG_FAILED = "操作失败"
 
+        const val TABLE = "table"
         var MSG = "msg"
         var CODE = "code"
         var DATA = "data"
+
+        fun success(code: Int = CODE_OK, msg: String = MSG_OK, data: Any? = null): JsonResult {
+            return JsonResult(code, msg, data)
+        }
+
+        fun failed(code: Int = -1, msg: String = MSG_FAILED, data: Any? = null): JsonResult {
+            return JsonResult(code, msg, data)
+        }
     }
 }
 

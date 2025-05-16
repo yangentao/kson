@@ -2,9 +2,11 @@
 
 package io.github.yangentao.kson
 
-import io.github.yangentao.xlog.loge
+import io.github.yangentao.xlog.TagLog
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+
+internal val jsonLog = TagLog("kson")
 
 /**
  * Kson , encode and decode
@@ -18,8 +20,8 @@ object Kson {
                 JsonParser(text).parse()
             }
         } catch (ex: Exception) {
-            loge("Parse Json error: ", ex.localizedMessage)
-            loge(ex)
+            jsonLog.e("Parse Json error: ", ex.localizedMessage)
+            jsonLog.e(ex)
             return null
         }
     }

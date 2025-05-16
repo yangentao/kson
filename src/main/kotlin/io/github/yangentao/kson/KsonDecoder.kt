@@ -2,14 +2,15 @@
 
 package io.github.yangentao.kson
 
-import io.github.yangentao.anno.Exclude
 import io.github.yangentao.anno.userName
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KType
-import kotlin.reflect.full.*
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.memberFunctions
 
 object KsonDecoder {
 
@@ -351,7 +352,3 @@ class KsonDecoderConfig {
 
 }
 
-internal val KClass<*>.propertiesJSON: List<KMutableProperty1<*, *>>
-    get() {
-        return this.memberProperties.filter { it.isPublic && it is KMutableProperty1 && !it.isAbstract && !it.isConst && !it.hasAnnotation<Exclude>() }.map { (it as KMutableProperty1) }
-    }
