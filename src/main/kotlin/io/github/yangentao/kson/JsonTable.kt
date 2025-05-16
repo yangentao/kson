@@ -1,52 +1,48 @@
 package io.github.yangentao.kson
 
-class JsonTable(val tableObject: KsonObject = KsonObject()) : Iterable<KsonObject> {
-    val header: KsonArray
-    val body: KsonArray
+/**
+ * 第一行是列的名称
+ * 从第二行开始, 是数据
+ * 类似 csv
+ */
+class JsonTable(val array: KsonArray = KsonArray()) : Iterable<KsonObject> {
+    val header: KsonArray? get() = array.getOrNull(0) as? KsonArray
 
-    init {
-        val a = tableObject.getArray(HEADER)
-        if (a != null) {
-            header = a
-        } else {
-            val ka = KsonArray()
-            tableObject.putArray(HEADER, ka)
-            header = ka
-        }
+    val rowCount: Int get() = if (array.isEmpty()) 0 else array.size - 1
+    val colCount: Int get() = header?.size ?: 0
 
-        val b = tableObject.getArray(BODY)
-        if (b != null) {
-            body = b
-        } else {
-            val ka = KsonArray()
-            tableObject.putArray(BODY, ka)
-            body = ka
+    private fun ensureHeader(obj: KsonObject) {
+        if (array.isEmpty()) {
+            val h = KsonArray(obj.size)
+            h.addAll(obj.entries.map { KsonString(it.key) })
+            array.add(h)
         }
     }
 
-    val rowCount: Int get() = body.size
-    val colCount: Int get() = header.size
-
-    fun addRow(obj: KsonObject) {
-        if (header.isEmpty()) {
-            val h = header
-            h.data.ensureCapacity(obj.size)
-            h.addAll(obj.entries.map { KsonString(it.key) })
-        }
+    private fun appendBody(obj: KsonObject) {
         val ka = KsonArray(obj.size)
         ka.addAll(obj.entries.map { it.value })
-        body.add(ka)
+        array.add(ka)
     }
 
-    fun addRows(ls: Collection<KsonObject>) {
-        body.data.ensureCapacity(ls.size)
+    fun addRow(obj: KsonObject): JsonTable {
+        ensureHeader(obj)
+        appendBody(obj)
+        return this
+    }
+
+    fun addRows(ls: Collection<KsonObject>): JsonTable {
+        if (ls.isEmpty()) return this
+        array.data.ensureCapacity(ls.size + 1)
+        ensureHeader(ls.first())
         for (ob in ls) {
-            addRow(ob)
+            appendBody(ob)
         }
+        return this
     }
 
     override fun toString(): String {
-        return tableObject.json()
+        return array.json()
     }
 
     override fun iterator(): Iterator<KsonObject> {
@@ -54,12 +50,13 @@ class JsonTable(val tableObject: KsonObject = KsonObject()) : Iterable<KsonObjec
     }
 
     class JsonTableIterator(val table: JsonTable) : Iterator<KsonObject> {
-        var index: Int = 0
+        private var index: Int = 1
+        private val header: KsonArray by lazy { table.array[0] as KsonArray }
         override fun next(): KsonObject {
-            val ko = KsonObject(table.header.size)
-            val row: KsonArray = table.body[index] as KsonArray
-            for (i in 0..<table.colCount) {
-                val k: KsonString = table.header[i] as KsonString
+            val ko = KsonObject(header.size)
+            val row: KsonArray = table.array[index] as KsonArray
+            for (i in 0..<header.size) {
+                val k: KsonString = header[i] as KsonString
                 val v: KsonValue = row[i]
                 ko.putAny(k.data, v)
             }
@@ -68,19 +65,15 @@ class JsonTable(val tableObject: KsonObject = KsonObject()) : Iterable<KsonObjec
         }
 
         override fun hasNext(): Boolean {
-            return index < table.rowCount
+            return index < table.array.size
         }
 
     }
 
     companion object {
-        const val HEADER = "header"
-        const val BODY = "body"
 
         fun fromRows(rows: Collection<KsonObject>): JsonTable {
-            val tab = JsonTable()
-            tab.addRows(rows)
-            return tab
+            return JsonTable().addRows(rows)
         }
     }
 }

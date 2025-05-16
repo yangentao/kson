@@ -35,13 +35,13 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
 
     var table: JsonTable
         get() {
-            val ob = jo.getObject(TABLE)
-            if (ob != null) return JsonTable(ob)
+            val ls = jo.getArray(TABLE)
+            if (ls != null) return JsonTable(ls)
             val tab = JsonTable()
-            jo.putAny(TABLE, tab.tableObject)
+            jo.putAny(TABLE, tab.array)
             return tab
         }
-        set(value) = jo.putAny(TABLE, value.tableObject)
+        set(value) = jo.putAny(TABLE, value.array)
 
     fun result(code: Int, msg: String?, data: Any?): JsonResult {
         this.code = code
