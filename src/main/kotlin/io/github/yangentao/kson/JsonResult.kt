@@ -33,16 +33,6 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
         get() = jo.getAny(DATA)
         set(value) = jo.putAny(DATA, value)
 
-    var table: JsonTable
-        get() {
-            val ls = jo.getArray(TABLE)
-            if (ls != null) return JsonTable(ls)
-            val tab = JsonTable()
-            jo.putAny(TABLE, tab.array)
-            return tab
-        }
-        set(value) = jo.putAny(TABLE, value.array)
-
     fun result(code: Int, msg: String?, data: Any?): JsonResult {
         this.code = code
         this.message = msg
@@ -83,16 +73,6 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
         return this
     }
 
-    fun table(tab: JsonTable): JsonResult {
-        this.table = tab
-        return this
-    }
-
-    fun tableRows(rows: Collection<KsonObject>): JsonResult {
-        this.table.addRows(rows)
-        return this
-    }
-
     fun dataObject(vararg ps: Pair<String, Any?>): JsonResult {
         val obj = KsonObject()
         for (p in ps) {
@@ -118,6 +98,11 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
         return this.data(ksonArray(list, block))
     }
 
+    fun dataTable(rows: Collection<KsonObject>): JsonResult {
+        this.data = JsonTable.fromRows(rows).array
+        return this
+    }
+
     override fun toString(): String {
         return jo.toString()
     }
@@ -127,7 +112,6 @@ class JsonResult private constructor(val jo: KsonObject = KsonObject()) {
         const val MSG_OK = "操作成功"
         const val MSG_FAILED = "操作失败"
 
-        const val TABLE = "table"
         var MSG = "msg"
         var CODE = "code"
         var DATA = "data"

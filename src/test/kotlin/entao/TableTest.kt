@@ -26,7 +26,7 @@ class TableTest {
     @Test
     fun build2() {
         val ls = (0..<3).map { Kson.toKson(Per("entao $it", 40 + it, if (it % 3 == 0) null else "addr $it "), KsonEncoderConfig(listOf(Per::hello))) as KsonObject }
-        val r = JsonResult.success().tableRows(ls)
+        val r = JsonResult.success().dataTable(ls)
         println(r)
 
     }
