@@ -61,7 +61,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
     fun putString(key: String, value: String?) {
         if (value == null) {
-            data[key] = KsonNull.inst
+            data[key] = KsonNull
         } else {
             data[key] = KsonString(value)
         }
@@ -82,7 +82,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
     fun putInt(key: String, value: Int?) {
         if (value == null) {
-            data[key] = KsonNull.inst
+            data[key] = KsonNull
         } else {
             data[key] = KsonNum(value)
         }
@@ -98,7 +98,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
     fun putLong(key: String, value: Long?) {
         if (value == null) {
-            data[key] = KsonNull.inst
+            data[key] = KsonNull
         } else {
             data[key] = KsonNum(value)
         }
@@ -114,7 +114,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
     fun putReal(key: String, value: Double?) {
         if (value == null) {
-            data[key] = KsonNull.inst
+            data[key] = KsonNull
         } else {
             data[key] = KsonNum(value)
         }
@@ -130,7 +130,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
     fun putBool(key: String, value: Boolean?) {
         if (value == null) {
-            data[key] = KsonNull.inst
+            data[key] = KsonNull
         } else {
             data[key] = KsonBool(value)
         }
@@ -149,7 +149,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
     fun putObject(key: String, value: KsonObject?) {
         if (value == null) {
-            data[key] = KsonNull.inst
+            data[key] = KsonNull
         } else {
             data[key] = value
         }
@@ -167,7 +167,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
 
     fun putArray(key: String, value: KsonArray?) {
         if (value == null) {
-            data[key] = KsonNull.inst
+            data[key] = KsonNull
         } else {
             data[key] = value
         }
@@ -186,7 +186,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
     }
 
     fun putNull(key: String) {
-        data[key] = KsonNull.inst
+        data[key] = KsonNull
     }
 
     infix fun <V> String.TO(value: V) {
@@ -218,7 +218,7 @@ class KsonObject(val data: LinkedHashMap<String, KsonValue> = LinkedHashMap(32))
             this[property.userName] ?: this[property.userName.lowercase()]
         } else {
             this[property.userName]
-        } ?: KsonNull.inst
+        } ?: KsonNull
 
         if (v !is KsonNull) {
             val pv = KsonDecoder.decodeByType(v, retType, null)

@@ -63,7 +63,7 @@ open class JsonParser(json: String) {
     }
 
     protected fun parseValue(): KsonValue {
-        if (ts.isEnd) return KsonNull.inst
+        if (ts.isEnd) return KsonNull
         ts.skipWhites()
         val ch = ts.nowChar
         return when (ch) {
@@ -74,7 +74,7 @@ open class JsonParser(json: String) {
             in CharCode.NUM0..CharCode.NUM9 -> KsonNum(parseNum())
             CharCode.n -> {
                 ts.expectString("null")
-                KsonNull.inst
+                KsonNull
             }
 
             CharCode.t -> {
@@ -165,7 +165,6 @@ private fun isNum(ch: Char): Boolean {
     if (ch >= CharCode.NUM0 && ch <= CharCode.NUM9) return true
     return ch == CharCode.DOT || ch == CharCode.MINUS || ch == CharCode.PLUS || ch == CharCode.e || ch == CharCode.E
 }
-
 
 private fun codesToString(charList: List<Char>): String {
     val buf = ArrayList<Char>()

@@ -112,7 +112,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
 
     fun add(value: String?) {
         if (value == null) {
-            data.add(KsonNull.inst)
+            data.add(KsonNull)
         } else {
             data.add(KsonString(value))
         }
@@ -120,7 +120,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
 
     fun add(value: Boolean?) {
         if (value == null) {
-            data.add(KsonNull.inst)
+            data.add(KsonNull)
         } else {
             data.add(KsonBool(value))
         }
@@ -128,7 +128,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
 
     fun add(value: Int?) {
         if (value == null) {
-            data.add(KsonNull.inst)
+            data.add(KsonNull)
         } else {
             data.add(KsonNum(value))
         }
@@ -136,7 +136,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
 
     fun add(value: Long?) {
         if (value == null) {
-            data.add(KsonNull.inst)
+            data.add(KsonNull)
         } else {
             data.add(KsonNum(value))
         }
@@ -148,7 +148,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
 
     fun add(value: Double?) {
         if (value == null) {
-            data.add(KsonNull.inst)
+            data.add(KsonNull)
         } else {
             data.add(KsonNum(value))
         }
@@ -156,7 +156,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
 
     fun addBlob(value: ByteArray?) {
         if (value == null) {
-            data.add(KsonNull.inst)
+            data.add(KsonNull)
         } else {
             data.add(KsonBlob(value))
         }
@@ -164,7 +164,7 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
 
     fun add(value: KsonValue?) {
         if (value == null) {
-            data.add(KsonNull.inst)
+            data.add(KsonNull)
         } else {
             data.add(value)
         }

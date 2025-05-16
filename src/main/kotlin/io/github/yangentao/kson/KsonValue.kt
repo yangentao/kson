@@ -8,6 +8,10 @@ abstract class KsonValue {
 
     abstract fun kson(buf: StringBuilder)
 
+    open fun json(): String {
+        return kson()
+    }
+
     open fun kson(): String {
         val sb = StringBuilder(preferBufferSize())
         kson(sb)
@@ -27,7 +31,7 @@ abstract class KsonValue {
     companion object {
         fun from(value: Any?): KsonValue {
             if (value == null) {
-                return KsonNull.inst
+                return KsonNull
             }
             if (value is KsonValue) {
                 return value
@@ -37,7 +41,7 @@ abstract class KsonValue {
     }
 }
 
-class KsonNull private constructor() : KsonValue() {
+object KsonNull : KsonValue() {
 
     override fun kson(buf: StringBuilder) {
         buf.append("null")
@@ -53,10 +57,6 @@ class KsonNull private constructor() : KsonValue() {
 
     override fun hashCode(): Int {
         return 1000
-    }
-
-    companion object {
-        val inst: KsonNull = KsonNull()
     }
 }
 

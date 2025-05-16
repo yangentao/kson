@@ -9,9 +9,7 @@ internal  fun KProperty<*>.getPropValue(inst: Any? = null): Any? {
     if (this.getter.parameters.isEmpty()) {
         return this.getter.call()
     }
-    val v = this.getter.call(inst)
-    if (v != null) return v
-    return null
+    return this.getter.call(inst)
 }
 
 internal val KProperty<*>.isPublic: Boolean get() = this.visibility == KVisibility.PUBLIC

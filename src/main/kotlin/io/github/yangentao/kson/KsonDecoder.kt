@@ -71,7 +71,7 @@ object KsonDecoder {
 
     fun decodeByClass(value: KsonValue, cls: KClass<*>, config: KsonDecoderConfig?): Any? {
         if (value is KsonNull) {
-            return if (cls == KsonNull::class) KsonNull.inst else null
+            return if (cls == KsonNull::class) KsonNull else null
         }
         if (value::class == cls) {
             return value
