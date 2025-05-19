@@ -6,6 +6,9 @@ import io.github.yangentao.anno.userName
 import java.net.URI
 import java.net.URL
 import java.sql.Blob
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.*
 import kotlin.reflect.KProperty1
 
@@ -28,10 +31,14 @@ object KsonEncoder {
             is Char -> return KsonString(m.toString())
             is StringBuffer -> return KsonString(m.toString())
             is StringBuilder -> return KsonString(m.toString())
-            is java.sql.Date -> return KsonString(formatDate(m.time))
-            is java.sql.Time -> return KsonString(formatTime(m.time))
-            is java.sql.Timestamp -> return KsonString(formatDateTime(m.time))
+            is java.sql.Date -> return KsonString(formatDate(m))
+            is java.sql.Time -> return KsonString(formatTime(m))
+            is java.sql.Timestamp -> return KsonString(formatDateTime(m))
             is java.util.Date -> return KsonNum(m.time)
+            is LocalTime -> return KsonString(formatTime(m))
+            is LocalDate -> return KsonString(formatDate(m))
+            is LocalDateTime -> return KsonString(formatDateTime(m))
+
             is Calendar -> return KsonNum(m.timeInMillis)
             is Blob -> return KsonBlob(m)
             is ByteArray -> return KsonBlob(m)

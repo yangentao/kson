@@ -5,6 +5,9 @@ package io.github.yangentao.kson
 import io.github.yangentao.anno.userName
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KType
@@ -171,6 +174,24 @@ object KsonDecoder {
             java.util.Date::class -> return when (value) {
                 is KsonNum -> java.util.Date(value.data.toLong())
                 is KsonString -> parseDate(value.data)?.let { java.util.Date(it) }
+                else -> error("type error: $cls  value: $value")
+            }
+
+            LocalDate::class -> return when (value) {
+                is KsonNum -> toLocalDate(value.data.toLong())
+                is KsonString -> parseDate(value.data)?.let { toLocalDate(it) }
+                else -> error("type error: $cls  value: $value")
+            }
+
+            LocalTime::class -> return when (value) {
+                is KsonNum -> toLocalTime(value.data.toLong())
+                is KsonString -> parseTime(value.data)?.let { toLocalTime(it) }
+                else -> error("type error: $cls  value: $value")
+            }
+
+            LocalDateTime::class -> return when (value) {
+                is KsonNum -> toLocalDateTime(value.data.toLong())
+                is KsonString -> parseDateTime(value.data)?.let { toLocalDateTime(it) }
                 else -> error("type error: $cls  value: $value")
             }
 

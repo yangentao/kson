@@ -2,6 +2,11 @@ package io.github.yangentao.kson
 
 import io.github.yangentao.anno.Exclude
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.reflect.*
 import kotlin.reflect.full.declaredMemberProperties
@@ -42,24 +47,39 @@ internal val KType.genericArgs: List<KTypeProjection> get() = this.arguments.fil
 internal val KType.isGeneric: Boolean get() = this.arguments.isNotEmpty()
 
 //yyyy-MM-dd HH:mm:ss
-internal fun formatDateTime(date: Long): String {
-    return format(date, "yyyy-MM-dd HH:mm:ss")
+internal fun formatDateTime(date: java.util.Date): String {
+    return simpleDateTimePattern.format(date)
 }
 
 //yyyy-MM-dd
-internal fun formatDate(date: Long): String {
-    return format(date, "yyyy-MM-dd")
+internal fun formatDate(date: java.util.Date): String {
+    return simpleDatePattern.format(date)
 }
 
 //HH:mm:ss
-internal fun formatTime(date: Long): String {
-    return format(date, "HH:mm:ss")
+internal fun formatTime(date: java.util.Date): String {
+    return simpleTimePattern.format(date)
 }
 
-internal fun format(date: Long, pattern: String): String {
-    val ff = SimpleDateFormat(pattern, Locale.getDefault())
-    return ff.format(Date(date))
+private val simpleDateTimePattern = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+private val simpleDatePattern = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+private val simpleTimePattern = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+
+internal fun formatDate(date: LocalDate): String {
+    return date.format(localDatePattern)
 }
+
+internal fun formatTime(time: LocalTime): String {
+    return time.format(localTimePattern)
+}
+
+internal fun formatDateTime(datetime: LocalDateTime): String {
+    return datetime.format(localDateTimePattern)
+}
+
+private val localDateTimePattern = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+private val localDatePattern = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+private val localTimePattern = DateTimeFormatter.ofPattern("HH:mm:ss")
 
 internal fun parseDate(s: String?): Long? {
     if (s == null || s.length < 6) {
@@ -72,7 +92,7 @@ internal fun parseTime(s: String?): Long? {
     if (s == null || s.length < 6) {
         return null
     }
-    return parse(listOf("HH:mm:ss", "H:m:s", "HH:mm:ss.SSS", "H:m:s.S"), s)
+    return parse(listOf("HH:mm:ss", "H:m:s", "HH:mm:ss.SSS", "H:m:s.S", "HH:mm:ss.SSSSSS"), s)
 }
 
 internal fun parseDateTime(s: String?): Long? {
@@ -81,9 +101,9 @@ internal fun parseDateTime(s: String?): Long? {
     }
     return parse(
         listOf(
+            "yyyy-MM-dd HH:mm:ss",
             "yyyy-MM-dd HH:mm:ss.SSS",
             "yyyy-M-d H:m:s.S",
-            "yyyy-MM-dd HH:mm:ss",
             "yyyy-M-d H:m:s",
             "yyyy-MM-ddTHH:mm:ss.SSS",
             "yyyy-M-dTH:m:s.S",
@@ -112,3 +132,19 @@ internal fun parse(format: String, dateStr: String, locale: Locale = Locale.getD
     }
     return null
 }
+
+internal fun toLocalDate(mill: Long): LocalDate {
+    val ins = java.time.Instant.ofEpochMilli(mill)
+    return LocalDate.ofInstant(ins, ZoneId.systemDefault())
+}
+
+internal fun toLocalTime(mill: Long): LocalTime {
+    val ins = java.time.Instant.ofEpochMilli(mill)
+    return LocalTime.ofInstant(ins, ZoneId.systemDefault())
+}
+
+internal fun toLocalDateTime(mill: Long): LocalDateTime {
+    val ins = java.time.Instant.ofEpochMilli(mill)
+    return LocalDateTime.ofInstant(ins, ZoneId.systemDefault())
+}
+
