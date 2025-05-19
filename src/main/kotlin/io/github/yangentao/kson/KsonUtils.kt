@@ -133,18 +133,7 @@ internal fun parse(format: String, dateStr: String, locale: Locale = Locale.getD
     return null
 }
 
-internal fun toLocalDate(mill: Long): LocalDate {
-    val ins = java.time.Instant.ofEpochMilli(mill)
-    return LocalDate.ofInstant(ins, ZoneId.systemDefault())
-}
-
-internal fun toLocalTime(mill: Long): LocalTime {
-    val ins = java.time.Instant.ofEpochMilli(mill)
-    return LocalTime.ofInstant(ins, ZoneId.systemDefault())
-}
-
-internal fun toLocalDateTime(mill: Long): LocalDateTime {
-    val ins = java.time.Instant.ofEpochMilli(mill)
-    return LocalDateTime.ofInstant(ins, ZoneId.systemDefault())
-}
-
+// mill seconds
+internal val Long.toLocalTime: LocalTime get() = LocalTime.ofInstant(java.time.Instant.ofEpochMilli(this), ZoneId.systemDefault())
+internal val Long.toLocalDate: LocalDate get() = LocalDate.ofInstant(java.time.Instant.ofEpochMilli(this), ZoneId.systemDefault())
+internal val Long.toLocalDateTime: LocalDateTime get() = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(this), ZoneId.systemDefault())

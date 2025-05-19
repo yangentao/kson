@@ -178,20 +178,20 @@ object KsonDecoder {
             }
 
             LocalDate::class -> return when (value) {
-                is KsonNum -> toLocalDate(value.data.toLong())
-                is KsonString -> parseDate(value.data)?.let { toLocalDate(it) }
+                is KsonNum -> value.data.toLong().toLocalDate
+                is KsonString -> parseDate(value.data)?.toLocalDate
                 else -> error("type error: $cls  value: $value")
             }
 
             LocalTime::class -> return when (value) {
-                is KsonNum -> toLocalTime(value.data.toLong())
-                is KsonString -> parseTime(value.data)?.let { toLocalTime(it) }
+                is KsonNum -> value.data.toLong().toLocalTime
+                is KsonString -> parseTime(value.data)?.toLocalTime
                 else -> error("type error: $cls  value: $value")
             }
 
             LocalDateTime::class -> return when (value) {
-                is KsonNum -> toLocalDateTime(value.data.toLong())
-                is KsonString -> parseDateTime(value.data)?.let { toLocalDateTime(it) }
+                is KsonNum -> value.data.toLong().toLocalDateTime
+                is KsonString -> parseDateTime(value.data)?.toLocalDateTime
                 else -> error("type error: $cls  value: $value")
             }
 
