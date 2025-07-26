@@ -7,14 +7,14 @@ buildscript {
     }
 }
 plugins {
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm") version "2.2.0"
     signing
     id("maven-publish")
     id("org.jetbrains.dokka") version "2.0.0"
     id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
-version = "1.1.8"
+version = "2.0.0"
 val artifactName = "kson"
 val descLib = "Json implements for kotlin"
 
@@ -34,9 +34,9 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib"))
-    implementation("io.github.yangentao:anno:[1.1.0,)")
-    implementation("io.github.yangentao:xlog:[1.1.3,)")
-    implementation("io.github.yangentao:charcode:[1.0.2,)")
+    implementation("io.github.yangentao:anno:[2.0.0,)")
+    implementation("io.github.yangentao:xlog:[2.0.0,)")
+    implementation("io.github.yangentao:charcode:[2.0.0,)")
 }
 
 tasks.test {
