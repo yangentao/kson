@@ -47,16 +47,16 @@ object Kson {
     }
 
     object Types {
-        val ArrayListString: KType by lazy { object : KsonTypeTake<ArrayList<String>>() {}.type }
-        val ArrayListInt: KType by lazy { object : KsonTypeTake<ArrayList<Int>>() {}.type }
-        val ArrayListLong: KType by lazy { object : KsonTypeTake<ArrayList<Long>>() {}.type }
-        val HashMapStringString: KType by lazy { object : KsonTypeTake<HashMap<String, String>>() {}.type }
-        val HashMapStringInt: KType by lazy { object : KsonTypeTake<HashMap<String, Int>>() {}.type }
-        val HashMapStringLong: KType by lazy { object : KsonTypeTake<HashMap<String, Long>>() {}.type }
+        val ArrayListString: KType by lazy { object : TypeTaker<ArrayList<String>>() {}.type }
+        val ArrayListInt: KType by lazy { object : TypeTaker<ArrayList<Int>>() {}.type }
+        val ArrayListLong: KType by lazy { object : TypeTaker<ArrayList<Long>>() {}.type }
+        val HashMapStringString: KType by lazy { object : TypeTaker<HashMap<String, String>>() {}.type }
+        val HashMapStringInt: KType by lazy { object : TypeTaker<HashMap<String, Int>>() {}.type }
+        val HashMapStringLong: KType by lazy { object : TypeTaker<HashMap<String, Long>>() {}.type }
     }
 }
 
-abstract class KsonTypeTake<T> {
+abstract class TypeTaker<T> {
 
     val type: KType by lazy { this::class.supertypes.first().arguments.first().type!! }
 }

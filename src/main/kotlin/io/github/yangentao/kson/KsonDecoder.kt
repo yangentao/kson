@@ -8,9 +8,7 @@ import java.math.BigInteger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.KType
+import kotlin.reflect.*
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberFunctions
@@ -272,7 +270,6 @@ object KsonDecoder {
                 is KsonArray -> value.data.map { (it as KsonNum).data.toDouble() }.toTypedArray()
                 else -> error("type error: $cls  value: $value")
             }
-            //TODO List, Map
         }
         if (cls.java.isArray) {
             value as KsonArray
@@ -306,7 +303,7 @@ object KsonDecoder {
         return model
     }
 
-    fun decodeByType(value: KsonValue, ktype: KType, config: KsonDecoderConfig?): Any? {
+    fun decodeByType(value: KsonValue, ktype: KType, config: KsonDecoderConfig? = null): Any? {
         val cls = ktype.classifier as KClass<*>
         if (!ktype.isGeneric) {
             return decodeByClass(value, cls, config)
@@ -316,15 +313,35 @@ object KsonDecoder {
         }
 
         if (cls.java.isArray) {
-            throw KsonError("不支持泛型数组Array<T>,请用ArrayList<T>代替")
+            value as KsonArray
+            val arr = java.lang.reflect.Array.newInstance(cls.java.componentType, value.size)
+            val c = cls.java.componentType.kotlin
+            var i = 0;
+            for (y in value) {
+                val v = decodeByClass(y, c, config)
+                java.lang.reflect.Array.set(arr, i, v)
+                i += 1
+            }
+            return arr
         }
         val argList = ktype.genericArgs
-        val inst = cls.createInstance()
+        val inst = if (cls.isAbstract) {
+            if (cls.isSubclassOf(List::class) || cls.isSubclassOf(Collection::class)) {
+                ArrayList::class.createInstance()
+            } else if (cls.isSubclassOf(Map::class)) {
+                LinkedHashMap::class.createInstance()
+            } else {
+                throw KsonError("KsonDecoder 不支持的类型：$cls")
+            }
+        } else {
+            cls.createInstance()
+        }
+        val instCls: KClass<*> = inst::class
         if (inst is MutableCollection<*>) {
             if (value !is KsonArray) {
                 throw KsonError("类型不匹配")
             }
-            val addFun = cls.memberFunctions.find { it.name == "add" && it.parameters.size == 2 } ?: throw KsonError("没有add 方法")
+            val addFun = instCls.memberFunctions.find { it.name == "add" && it.parameters.size == 2 } ?: throw KsonError("没有add 方法")
             val arg = argList.first()
             val argType = arg.type ?: throw KsonError("type是null")
             val argCls = argType.classifier as KClass<*>
@@ -347,7 +364,7 @@ object KsonDecoder {
                 throw KsonError("MutableMap的键必须是String")
             }
             val typeVal = argList[1].type ?: throw KsonError("类型不匹配")
-            val putFun = cls.memberFunctions.find { it.name == "put" && it.parameters.size == 3 } ?: throw KsonError("没有put 方法")
+            val putFun = instCls.memberFunctions.find { it.name == "put" && it.parameters.size == 3 } ?: throw KsonError("没有put 方法")
             for ((key, yv) in value) {
                 val v = decodeByType(yv, typeVal, config)
                 if (v != null || typeVal.isMarkedNullable) {
@@ -366,6 +383,19 @@ object KsonDecoder {
         if (value is KsonArray) return value.data.toString()
         if (value is KsonBlob) return value.encoded
         error("type error:   value: $value")
+    }
+
+    fun decode(parameter: KParameter, value: KsonValue, config: KsonDecoderConfig? = null): Any? {
+        return decodeByType(value, parameter.type, config)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> decode(prop: KProperty<T>, value: KsonValue, config: KsonDecoderConfig? = null): T? {
+        return decodeByType(value, prop.returnType, config) as T?
+    }
+
+    fun <T> decode(taker: TypeTaker<T>, value: KsonValue, config: KsonDecoderConfig? = null): Any? {
+        return decodeByType(value, taker.type, config)
     }
 }
 
