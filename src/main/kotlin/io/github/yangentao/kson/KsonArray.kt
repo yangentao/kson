@@ -110,6 +110,13 @@ class KsonArray(val data: ArrayList<KsonValue> = ArrayList(16)) : KsonValue(), M
         }
     }
 
+    val objectList: List<KsonObject> get() = this.map { it as KsonObject }
+    val intList: List<Int> get() = this.map { (it as KsonNum).data.toInt() }
+    val longList: List<Long> get() = this.map { (it as KsonNum).data.toLong() }
+    val doubleList: List<Double> get() = this.map { (it as KsonNum).data.toDouble() }
+    val boolList: List<Boolean> get() = this.map { (it as KsonBool).data }
+    val stringList: List<String> get() = this.map { (it as KsonString).data }
+
     fun add(value: String?) {
         if (value == null) {
             data.add(KsonNull)

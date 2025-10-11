@@ -27,6 +27,12 @@ abstract class KsonValue {
     }
 
     val isCollection: Boolean get() = this is KsonObject || this is KsonArray
+    val isNull: Boolean get() = this is KsonNull
+    val isBool: Boolean get() = this is KsonBool
+    val isString: Boolean get() = this is KsonString
+    val isNum: Boolean get() = this is KsonNum
+    val isObject: Boolean get() = this is KsonObject
+    val isArray: Boolean get() = this is KsonArray
 
     companion object {
         fun from(value: Any?): KsonValue {
