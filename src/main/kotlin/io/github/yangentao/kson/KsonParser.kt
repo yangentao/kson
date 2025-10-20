@@ -278,11 +278,6 @@ internal fun encodeJsonString(s: String): String {
             i += 1
         } else {
             when (ch) {
-                CharCode.SQUOTE -> {
-                    buf.add(CharCode.BSLASH);
-                    buf.add(CharCode.SQUOTE);
-                }
-
                 CharCode.BSLASH -> {
                     buf.add(CharCode.BSLASH);
                     buf.add(CharCode.BSLASH);
